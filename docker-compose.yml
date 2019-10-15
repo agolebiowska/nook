@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  prod:
+    hostname: app-prod
+    restart: unless-stopped
+    build:
+      context: . 
+      dockerfile: docker/app/Dockerfile
+      target: base
+    env_file:
+      - ./docker/app/.env
+    volumes:
+      - type: bind
+        source: .
+        target: /nook
+    working_dir: /nook
+    ports:
+      - "8081:8081" 
+    command: bash -c "./scripts/prod.sh"
+
+  dev:
+    hostname: app-dev
+    restart: unless-stopped
+    build:
+      context: . 
+      dockerfile: docker/app/Dockerfile
+      target: dev
+    env_file:
+      - ./docker/app/.env
+    volumes:
+      - type: bind
+        source: .
+        target: /nook
+    working_dir: /nook
+    ports:
+      - "8080:8080" 
+    command: bash -c "go mod download && make serve"
