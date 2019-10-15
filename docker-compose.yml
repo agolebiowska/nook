@@ -1,38 +1,32 @@
 version: '3.7'
 
 services:
-  prod:
-    hostname: app-prod
+  app:
     restart: unless-stopped
     build:
-      context: . 
+      context: .
       dockerfile: docker/app/Dockerfile
-      target: base
+      target: build-env
     env_file:
-      - ./docker/app/.env
+      - docker/app/.env.dist
     volumes:
       - type: bind
         source: .
         target: /nook
     working_dir: /nook
     ports:
-      - "8081:8081" 
-    command: bash -c "./scripts/prod.sh"
+      - 8080:8080
+    depends_on:
+      - db
+    command: bash -c "./scripts/dev.sh"
 
-  dev:
-    hostname: app-dev
-    restart: unless-stopped
-    build:
-      context: . 
-      dockerfile: docker/app/Dockerfile
-      target: dev
-    env_file:
-      - ./docker/app/.env
-    volumes:
-      - type: bind
-        source: .
-        target: /nook
-    working_dir: /nook
+  db:
+    build: ./docker/mariadb/
+    environment:
+      MYSQL_ROOT_PASSWORD: nook_root_pass
+      MYSQL_DATABASE: nook_db
+      MYSQL_USER: nook_user
+      MYSQL_PASSWORD: nook_pass
     ports:
-      - "8080:8080" 
-    command: bash -c "go mod download && make serve"
+      - 3306:3306
+    restart: always
